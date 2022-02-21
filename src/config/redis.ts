@@ -4,7 +4,7 @@ dotenv.config();
 import { createClient } from 'redis';
 
      
-// let client = createClient();
+let client = createClient();
 // if (process.env.REDISTOGO_URL) {
 //   let redisURL: any = process.env.REDISTOGO_URL;
 //   client = createClient(redisURL);
@@ -16,8 +16,8 @@ import { createClient } from 'redis';
 
 // const client = createClient();
 
-let redisURL: any = process.env.REDISTOGO_URL;
-let client = createClient(redisURL);
+// let redisURL: any = process.env.REDISTOGO_URL;
+// let client = createClient(redisURL);
 
 (async () => {
   await client.connect();
