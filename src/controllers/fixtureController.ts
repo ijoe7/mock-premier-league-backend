@@ -12,7 +12,7 @@ dotenv.config();
 export const addFixture = async (req: Request, res: Response, next: NextFunction) => {
     const { error, value } = validateFixture(req.body);
     if (error) {
-      return res.status(400).send(error.details[0].message);
+        return res.status(400).send(error.details[0].message);
     }
     try {
         const { homeTeam, awayTeam, date } = value;
@@ -25,9 +25,9 @@ export const addFixture = async (req: Request, res: Response, next: NextFunction
         if (redisDataExists === 1) {
             const fixtureExists = await client.hGet(rediskey, `${homeTeam}-${awayTeam}`);
             if (fixtureExists && JSON.parse(fixtureExists).status === "scheduled" || fixtureExists && JSON.parse(fixtureExists).status === "ongoing") {
-                return res.json({
+                return res.status(201).json({
                     message: "Fixture already exists with its unique URL",
-                    fixture: JSON.parse(fixtureExists),
+                    data: JSON.parse(fixtureExists),
                     link: `${process.env.MY_DOMAIN}${process.env.FRONTEND_ROUTE}${JSON.parse(fixtureExists).url}`
                 });
             }
@@ -72,11 +72,11 @@ export const addFixture = async (req: Request, res: Response, next: NextFunction
             await client.hSet(rediskey, `${homeTeam}-${awayTeam}`, JSON.stringify(populateFixture));
             await client.hSet(redisID, id, `${homeTeam}-${awayTeam}`);
             await client.hSet(redisFixtureUrl, url, `${homeTeam}-${awayTeam}`);
-            return res.json({
+            return res.status(201).json({
                 status: "success",
                 message: "Fixture created successfully and URL generated",
                 data: populateFixture,
-                link: `${process.env.MY_DOMAIN}${process.env.FRONTEND_ROUTE}${url}`
+                link: `${process.env.MY_DOMAIN}${process.env.FRONTEND_ROUTE}${url}`,
             });
         } else {
             return res.json({ message: "Team list does not exist. Fetch or Add specified Teams." });
@@ -92,19 +92,19 @@ export const getAllFixtures = async (req: Request, res: Response, next: NextFunc
         const rediskey = "allFixtures";
         const cachedFixtureList = await client.get(rediskey);
         if (cachedFixtureList) {
-            return res.json({
+            return res.status(200).json({
                 status: "success",
                 message: "All Fixtures retrieved successfully",
-                data: JSON.parse(cachedFixtureList)
+                data: JSON.parse(cachedFixtureList),
             });
         }
         const fixtures = await Fixture.find({});
         if (!fixtures) return res.json({ message: "Fixture not found" });
         await client.set(rediskey, JSON.stringify(fixtures));
-        return res.json({
+        return res.status(200).json({
             status: "success",
             message: "All Fixtures retrieved successfully",
-            data: fixtures
+            data: fixtures,
         });
     } catch (error) {
         console.log(error);
@@ -123,10 +123,10 @@ export const getFixture = async (req: Request, res: Response, next: NextFunction
         const cachedFixturename = await client.hGet(redisFixtureUrl, url);
         if (cachedFixturename) {
             const cachedFixture: any = await client.hGet(rediskey, cachedFixturename);
-            return res.json({
+            return res.status(200).json({
                 status: "success",
                 message: "Fixture retrieved successfully",
-                data: JSON.parse(cachedFixture)
+                data: JSON.parse(cachedFixture),
             });
         }
         const fixture = await Fixture.findOne({ url });
@@ -138,10 +138,10 @@ export const getFixture = async (req: Request, res: Response, next: NextFunction
         await client.hSet(redisFixtureUrl, fixtureUrl, `${fixture.homeTeam}-${fixture.awayTeam}`);
         await client.hSet(rediskey, `${fixture.homeTeam}-${fixture.awayTeam}`, JSON.stringify(fixture));
         await client.set(redisAllFixtures, JSON.stringify(allFixtures));
-        return res.json({
+        return res.status(200).json({
             status: "success",
             message: "Fixture retrieved successfully",
-            data: fixture
+            data: fixture,
         });
     } catch (error) {
         console.log(error);
@@ -152,7 +152,7 @@ export const getFixture = async (req: Request, res: Response, next: NextFunction
 export const updateFixture = async (req: Request, res: Response, next: NextFunction) => {
     let { error, value } = validateUpdateFixture(req.body);
     if (error) {
-      return res.status(400).send(error.details[0].message);
+        return res.status(400).send(error.details[0].message);
     }
     try {
         let { url } = req.params;
@@ -169,10 +169,10 @@ export const updateFixture = async (req: Request, res: Response, next: NextFunct
         if (!fixture) return res.json({ message: "Fixture not found" });
         await client.hSet(rediskey, cachedFixturename, JSON.stringify(fixture));
         await client.del(redisAllFixtures);
-        return res.json({
+        return res.status(201).json({
             status: "success",
             message: "Fixture updated successfully",
-            data: fixture
+            data: fixture,
         });
     } catch (error) {
         console.log(error);
@@ -196,10 +196,10 @@ export const deleteFixture = async (req: Request, res: Response, next: NextFunct
         await client.hDel(redisFixtureUrl, url);
         await client.hDel(redisID, cachedFixturename);
         await client.del(redisAllFixtures);
-        return res.json({
+        return res.status(200).json({
             status: "success",
             message: "Fixture deleted successfully",
-            data: fixture
+            data: fixture,
         });
     } catch (error) {
         console.log(error);
@@ -212,19 +212,19 @@ export const getCompleteFixtures = async (req: Request, res: Response, next: Nex
         const rediskey = "completeFixtures";
         const cachedFixtureList = await client.get(rediskey);
         if (cachedFixtureList) {
-            return res.json({
+            return res.status(200).json({
                 status: "success",
                 message: "All Fixtures retrieved successfully",
-                data: JSON.parse(cachedFixtureList)
+                data: JSON.parse(cachedFixtureList),
             });
         }
         const fixtures = await Fixture.find({ status: "completed" });
         if (!fixtures) return res.json({ message: "Fixture not found" });
         await client.setEx(rediskey, 15, JSON.stringify(fixtures));
-        return res.json({
+        return res.status(200).json({
             status: "success",
             message: "All Fixtures retrieved successfully",
-            data: fixtures
+            data: fixtures,
         });
     } catch (error) {
         console.log(error);
@@ -239,22 +239,22 @@ export const getPendingFixtures = async (req: Request, res: Response, next: Next
         const cachedFixtureList: any = await client.get(rediskey);
         const cachedFixtureList2: any = await client.get(rediskey2);
         if (cachedFixtureList) {
-            return res.json({
+            return res.status(200).json({
                 status: "success",
                 message: "All Fixtures retrieved successfully",
                 scheduled: JSON.parse(cachedFixtureList),
-                ongoing: JSON.parse(cachedFixtureList2)
+                ongoing: JSON.parse(cachedFixtureList2),
             });
         }
         const fixtures = await Fixture.find({ status: "scheduled" });
         const ongoingFixtures = await Fixture.find({ status: "ongoing" });
         await client.setEx(rediskey, 15, JSON.stringify(fixtures));
         await client.setEx(rediskey2, 15, JSON.stringify(ongoingFixtures));
-        return res.json({
+        return res.status(200).json({
             status: "success",
             message: "All Fixtures retrieved successfully",
             scheduled: fixtures,
-            ongoing: ongoingFixtures
+            ongoing: ongoingFixtures,
         });
     } catch (error) {
         console.log(error);
@@ -273,10 +273,10 @@ export const searchFixtures = async (req: Request, res: Response, next: NextFunc
                 return fixture.homeTeam.toLowerCase().includes(homeOrAway.toLowerCase()) ||
                     fixture.awayTeam.toLowerCase().includes(homeOrAway.toLowerCase());
             });
-            return res.json({
+            return res.status(200).json({
                 status: "success",
                 message: "Fixtures retrieved successfully",
-                data: filteredFixtures
+                data: filteredFixtures,
             });
         }
         const fixtures = await Fixture.find({});
@@ -286,10 +286,10 @@ export const searchFixtures = async (req: Request, res: Response, next: NextFunc
             return fixture.homeTeam.toLowerCase().includes(homeOrAway.toLowerCase()) ||
                 fixture.awayTeam.toLowerCase().includes(homeOrAway.toLowerCase());
         });
-        return res.json({
+        return res.status(200).json({
             status: "success",
             message: "Fixtures retrieved successfully",
-            data: filteredFixtures
+            data: filteredFixtures,
         });
     } catch (error) {
         console.log(error);

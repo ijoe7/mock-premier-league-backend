@@ -18,9 +18,9 @@ export const addTeam = async (req: Request, res: Response, next: NextFunction) =
         const cachedTeamlist = await client.hGet(rediskey, name);
         
         if (cachedTeamlist) {
-            return res.json({
+            return res.status(201).json({
                 message: "Team already exists",
-                team: JSON.parse(cachedTeamlist)
+                data: JSON.parse(cachedTeamlist)
             })
         } else {
             const teamExists = await Team.findOne({ name });
@@ -28,9 +28,9 @@ export const addTeam = async (req: Request, res: Response, next: NextFunction) =
                 let id = teamExists._id.toString();
                 await client.hSet(rediskey, teamExists.name, JSON.stringify(teamExists));
                 await client.hSet(redisID, id, teamExists.name);
-                return res.json({
+                return res.status(201).json({
                     message: "Team already exists",
-                    team: teamExists
+                    data: teamExists
                 })
             }
         }
@@ -46,10 +46,10 @@ export const addTeam = async (req: Request, res: Response, next: NextFunction) =
         await client.hSet(rediskey, name, JSON.stringify(newTeam));
         await client.hSet(redisID, id, name);
         await client.set(redisAllTeams, JSON.stringify(allTeams));
-        return res.json({
-            status: "success",
-            message: "Team added successfully",
-            data: newTeam
+        return res.status(201).json({
+          status: "success",
+          message: "Team added successfully",
+          data: newTeam,
         });
     } catch (error) {
         console.log(error);
@@ -62,16 +62,16 @@ export const getAllTeams = async (req: Request, res: Response, next: NextFunctio
         const rediskey = 'allTeams';
         const cachedTeamlist = await client.get(rediskey);
         if (cachedTeamlist) {
-            return res.json({
-                status: "success",
-                message: "Team list retrieved successfully",
-                data: JSON.parse(cachedTeamlist)
+            return res.status(200).json({
+              status: "success",
+              message: "Team list retrieved successfully",
+              data: JSON.parse(cachedTeamlist),
             });
         } 
         const teams = await Team.find();
         if (!teams) return res.json({ message: "No teams found" });
         await client.set(rediskey, JSON.stringify(teams));
-        return res.json({
+        return res.status(200).json({
             status: "success",
             message: "Team list retrieved successfully",
             data: teams
@@ -91,7 +91,7 @@ export const getTeam = async (req: Request, res: Response, next: NextFunction) =
         const cachedTeamName = await client.hGet(redisID, id);
         if (cachedTeamName) {
             const cachedTeamlist: any = await client.hGet(rediskey, cachedTeamName);
-            return res.json({
+            return res.status(200).json({
                 status: "success",
                 message: "Team retrieved successfully",
                 data: JSON.parse(cachedTeamlist)
@@ -102,10 +102,10 @@ export const getTeam = async (req: Request, res: Response, next: NextFunction) =
         let teamId = team._id.toString();
         await client.hSet(redisID, teamId, team.name);
         await client.hSet(rediskey, team.name, JSON.stringify(team));
-        return res.json({
-            status: "success",
-            message: "Team retrieved successfully",
-            data: team
+        return res.status(200).json({
+          status: "success",
+          message: "Team retrieved successfully",
+          data: team,
         });
     } catch (error) {
         console.log(error);
@@ -135,7 +135,7 @@ export const updateTeam = async (req: Request, res: Response, next: NextFunction
             delete cachedTeamlist.updatedAt;
             const sameData = _.isEqual(cachedTeamlist, value);
             if (sameData) {
-                return res.json({
+                return res.status(201).json({
                     status: "success",
                     message: "Team updated successfully (Nothing changed)",
                     data: cachedTeamlist,
@@ -165,10 +165,10 @@ export const updateTeam = async (req: Request, res: Response, next: NextFunction
             await client.hSet(rediskey, team.name, JSON.stringify(team));
             await client.del(redisAllTeams);
         }
-        return res.json({
-            status: "success",
-            message: "Team updated successfully",
-            data: team,
+        return res.status(201).json({
+          status: "success",
+          message: "Team updated successfully",
+          data: team,
         });
     } catch (error) {
         console.log(error);
@@ -193,7 +193,7 @@ export const deleteTeam = async (req: Request, res: Response, next: NextFunction
         }
         const team = await Team.findByIdAndDelete(id);
         if (!team) return res.json({ message: "Team not found" });
-        return res.json({
+        return res.status(200).json({
             status: "success",
             message: "Team deleted successfully",
             data: team,
@@ -212,20 +212,22 @@ export const searchTeams = async (req: Request, res: Response, next: NextFunctio
         const redisAllTeams = "allTeams";
         //  const cachedTeamName = await client.hGet(redisID, id);
         const cachedAllTeams = await client.get(redisAllTeams);
-         if (cachedAllTeams) {
+        if (cachedAllTeams) {
            const cachedTeamlist: any = await client.hGet(rediskey, teamName.toLowerCase());
-           return res.json({
+           return res.status(200).json({
              status: "success",
              message: "Team retrieved successfully",
              data: JSON.parse(cachedTeamlist),
            });
          }
-         const team = await Team.findById(teamName.toLowerCase());
-         if (!team) return res.json({ message: "Team not found" });
-         let teamId = team._id.toString();
+        const team = await Team.findOne({ name: teamName.toLowerCase() });
+        if (!team) return res.json({ message: "Team not found" });
+        const allTeams = await Team.find();
+        let teamId = team._id.toString();
          await client.hSet(redisID, teamId, team.name);
-         await client.hSet(rediskey, team.name, JSON.stringify(team));
-         return res.json({
+        await client.hSet(rediskey, team.name, JSON.stringify(team));
+        await client.set(redisAllTeams, JSON.stringify(allTeams));
+         return res.status(200).json({
            status: "success",
            message: "Team retrieved successfully",
            data: team,
