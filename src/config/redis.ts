@@ -4,7 +4,13 @@ dotenv.config();
 import { createClient } from 'redis';
 
      
-let client = createClient();
+let client = createClient({
+  url: process.env.REDIS_URL,
+  socket: {
+    tls: true,
+    rejectUnauthorized: false,
+  },
+});
 // if (process.env.REDISTOGO_URL) {
 //   let redisURL: any = process.env.REDISTOGO_URL;
 //   client = createClient(redisURL);
