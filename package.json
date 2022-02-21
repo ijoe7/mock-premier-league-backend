@@ -7,7 +7,7 @@
     "start": "tsc && node ./dist/index.js",
     "dev": "tsc && nodemon ./src/index.js",
     "test": "jest --runInBand --verbose --detectOpenHandles",
-    "build": "tsc -watch"
+    "build": "tsc"
   },
   "jest": {
     "testEnvironment": "node"
