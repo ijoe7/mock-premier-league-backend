@@ -5,11 +5,7 @@ import { createClient } from 'redis';
 
      
 let client = createClient({
-  url: process.env.REDIS_URL,
-  socket: {
-    tls: true,
-    rejectUnauthorized: false,
-  },
+  url: process.env.REDIS_URL
 });
 // if (process.env.REDISTOGO_URL) {
 //   let redisURL: any = process.env.REDISTOGO_URL;
