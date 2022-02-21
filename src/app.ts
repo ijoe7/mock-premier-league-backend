@@ -3,6 +3,9 @@ const app = express();
 import bodyParser from "body-parser";
 import cors from "cors";
 import { HttpError } from "http-errors";
+import userRouter from "./routes/userRoutes";
+import teamRouter from "./routes/teamRoutes";
+import fixtureRouter from "./routes/fixtureRoutes";
 
 const options: cors.CorsOptions = {
     origin: "*",
@@ -15,11 +18,10 @@ app.use(bodyParser.urlencoded({ extended: false }));
 // parse application/json
 app.use(bodyParser.json());
 
-// app.use("/");
 
-app.use("/", (req: Request, res: Response) => {
-  res.send("Hello, Welcome to the Mock Premier League API");
-});
+app.use("/api/users", userRouter);
+app.use("/api/teams", teamRouter);
+app.use("/api/fixtures", fixtureRouter);
 
 // error handler
 app.use(function (err: HttpError, req: Request, res: Response, next: NextFunction) {
