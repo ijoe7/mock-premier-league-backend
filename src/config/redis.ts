@@ -4,17 +4,21 @@ dotenv.config();
 import { createClient } from 'redis';
 
      
-let client = createClient();
-if (process.env.REDISTOGO_URL) {
-  let redisURL: any = process.env.REDISTOGO_URL;
-  client = createClient(redisURL);
-  console.log("Using Redis To Go");
-} else {
-  client = createClient();
-  console.log("Using Local Redis");
-};
+// let client = createClient();
+// if (process.env.REDISTOGO_URL) {
+//   let redisURL: any = process.env.REDISTOGO_URL;
+//   client = createClient(redisURL);
+//   console.log("Using Redis To Go");
+// } else {
+//   client = createClient();
+//   console.log("Using Local Redis");
+// };
 
 // const client = createClient();
+
+let redisURL: any = process.env.REDISTOGO_URL;
+let client = createClient(redisURL);
+
 (async () => {
   await client.connect();
 })();
