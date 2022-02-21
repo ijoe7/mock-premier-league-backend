@@ -3,14 +3,15 @@ import dotenv from 'dotenv';
 dotenv.config();
 import { createClient } from 'redis';
 
-// const REDIS_PORT: any = process.env.PORT || 6379;
-// const redisClient = redis.createClient({
-    //     host: process.env.REDIS_HOST,
-    //     port: REDIS_PORT,
-    //     retry_strategy: () => 1000
-    // });
-    
-const client = createClient();
+
+let client;
+if (process.env.REDISTOGO_URL) {
+  let redisURL: any = process.env.REDISTOGO_URL;
+  client = createClient(redisURL);
+} else {
+  client = createClient();
+}
+// const client = createClient();
 (async () => {
   await client.connect();
 })();
