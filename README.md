@@ -22,10 +22,10 @@ run npm install
 
 ## Links
 ### Postman Documentation:
-[Postman Documentation]()
+[Postman Documentation](https://documenter.getpostman.com/view/15642679/UVkmQcVv)
 
 ### Heroku Link:
-[Heroku link]()
+[Heroku link](https://mock-premierleague-app.herokuapp.com)
 
 ## Work-done
 ### Created Endpoints for:
