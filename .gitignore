@@ -2,3 +2,7 @@ node_modules/
 .env
 .github
 dist
+
+coverage
+/coverage.data
+/coverage/
